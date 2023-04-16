@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: uat-db
+  datasource:
+    url: "uat数据库配置url"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: uat-redis
+  data:
+    redis:
+      port: 6666
+
+
+

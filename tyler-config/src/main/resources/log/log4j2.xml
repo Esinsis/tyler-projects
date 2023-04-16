@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration status="WARN">
+    <Properties>
+        <Property name="logFilePath">./log</Property>
+        <Property name="logFileName">${ctx:logName}</Property>
+        <Property name="backupPath">${logFilePath}/%d{yyyy-MM-dd}</Property>
+        <!--当前精确的分钟,可根据情况自行配置-->
+        <Property name="backupHZ">%d{yyyy-MM-dd-HH-mm}</Property>
+        <!--日志文件中的日志打印格式-->
+        <Property name="logFormat">[%d{yyyy-MM-dd HH:mm:ss.SSS}] %p %t %c[%L] - %m %n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <!--disableAnsi="false" 如果不设置为false，在windows系统下，console日志颜色的配置不会生效-->
+            <PatternLayout disableAnsi="false">
+                <!--%style{%d}{Underline,black},设置时间格式，及颜色样式-->
+                <!--%style{[%t]}{Underline,FG_White},设置线程，及颜色样式-->
+                <!--%highlight{%-5level:}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=Bright Cyan, TRACE=Bright Blue},设置日志LEVEL，及颜色样式-->
+                <!--%style{%msg(%L)}{Default},设置方法名，及颜色样式-->
+                <!--%throwable，异常 相关-->
+                <pattern>
+                    %style{%d}{Default} %style{[%t]}{Underline,FG_White} %style{%c{1.}}{Underline,FG_Cyan} %style{%M}{Default} %highlight{%-5level:}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=Bright Cyan, TRACE=Bright Blue} %style{%msg(%L)}{Default} %throwable %n
+                </pattern>
+            </PatternLayout>
+        </Console>
+
+        <!--INFO日志收集-->
+        <RollingFile name="infoLog" fileName="${logFilePath}/${logFileName}-infoLog.log"
+                     filePattern="${backupPath}/info/${logFileName}-infoLog-${backupHZ}-%i.log">
+            <!--日志文件中的日志格式-->
+            <PatternLayout pattern="${logFormat}"/>
+
+            <Policies>
+                <!--根据时间备份,interval表示间隔时间, 需结合${backupPath}中的时间,当前精确到分钟,所以就是按1分钟间隔. 可单独使用-->
+                <TimeBasedTriggeringPolicy modulate="true" interval="1"/>
+                <!--根据日志文件大小配置,size为当前日志文件大小.可单独使用-->
+                <SizeBasedTriggeringPolicy size="2MB"/>
+            </Policies>
+
+            <!--<DefaultRolloverStrategy max="15">-->
+            <!--设置日志定时删除-->
+            <DefaultRolloverStrategy>
+                <!--扫描的日志文件路径,maxDepth为文件层级-->
+                <Delete basePath="${logFilePath}/" maxDepth="3">
+                    <!--默认规则,只能删除文件,不能删除文件夹,如果需要删除文件夹需 添加ScriptCondition节点，再添加Script子节点，这样删除什么完全由脚本决定 . 可参考官网 http://logging.apache.org/log4j/2.x/manual/appenders.html#ScriptCondition-->
+                    <IfFileName glob="*/info/${logFileName}-infoLog-*.log"/>
+                    <!--日志保存期限 age的单位：D、H、M、S，分别表示天、小时、分钟、秒-->
+                    <IfLastModified age="2D"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+            <!--过滤器 只打印INFO日志-->
+            <Filters>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMisMatch="NEUTRAL"/>
+                <ThresholdFilter Level="INFO" onMatch="ACCEPT" onMisMatch="DENY"/>
+            </Filters>
+
+        </RollingFile>
+
+        <!--WARN日志收集-->
+        <RollingFile name="warnLog" fileName="${logFilePath}/${logFileName}-warnLog.log"
+                     filePattern="${backupPath}/warn/${logFileName}-warnLog-${backupHZ}-%i.log">
+
+            <PatternLayout pattern="${logFormat}"/>
+
+            <Policies>
+                <!--<TimeBasedTriggeringPolicy modulate="true" interval="1"/>-->
+                <SizeBasedTriggeringPolicy size="1MB"/>
+            </Policies>
+
+            <!--<DefaultRolloverStrategy max="15">-->
+            <DefaultRolloverStrategy>
+                <!--<Delete basePath="${backupPath}/warn/" maxDepth="1">-->
+                <Delete basePath="${logFilePath}/" maxDepth="3">
+                    <!--                    <IfFileName glob="${logFilePath}-info*.log.gz"/>-->
+                    <IfFileName glob="*/warn/${logFileName}-warnLog-*.log"/>
+                    <!--                    <IfLastModified age="60m" />-->
+                    <IfLastModified age="3D"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+            <!--过滤器 只打印WARN日志-->
+            <!--            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>-->
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMisMatch="NEUTRAL"/>
+                <ThresholdFilter Level="WARN" onMatch="ACCEPT" onMisMatch="DENY"/>
+            </Filters>
+
+        </RollingFile>
+
+        <!--ERROR 日志收集-->
+        <RollingFile name="errorLog" fileName="${logFilePath}/${logFileName}-errorLog.log"
+                     filePattern="${backupPath}/error/${logFileName}-errorLog-${backupHZ}-%i.log">
+
+            <PatternLayout pattern="${logFormat}"/>
+
+            <Policies>
+                <!--                <TimeBasedTriggeringPolicy modulate="true" interval="1"/>-->
+                <SizeBasedTriggeringPolicy size="2MB"/>
+            </Policies>
+
+
+            <DefaultRolloverStrategy>
+                <!--                <Delete basePath="${backupPath}/error/" maxDepth="1">-->
+                <Delete basePath="${logFilePath}/" maxDepth="3">
+                    <!--                    <IfFileName glob="${logFilePath}-info*.log.gz"/>-->
+                    <IfFileName glob="*/error/${logFileName}-errorLog-*.log"/>
+                    <!--                    <IfLastModified age="60m" />-->
+                    <IfLastModified age="3D"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+
+            <!--过滤器 只打印WARN日志-->
+            <ThresholdFilter Level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+        <root level="info">
+            <AppenderRef ref="CONSOLE"/>
+            <AppenderRef ref="infoLog"/>
+            <AppenderRef ref="warnLog"/>
+            <AppenderRef ref="errorLog"/>
+            <!--            <AppenderRef ref="RollingTimeFile"/>-->
+        </root>
+    </Loggers>
+</configuration>

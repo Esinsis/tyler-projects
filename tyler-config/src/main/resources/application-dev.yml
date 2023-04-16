@@ -1,0 +1,15 @@
+spring:
+  config:
+    activate:
+      on-profile: dev-db
+  datasource:
+    url: "dev数据库配置url"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev-redis
+  data:
+    redis:
+      port: 8888

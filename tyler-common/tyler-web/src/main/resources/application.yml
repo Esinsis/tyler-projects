@@ -1,0 +1,29 @@
+spring:
+  profiles:
+    active: '@profile.active@'
+    group:
+      dev: "dev-db,file,dev-redis,log"
+      uat:
+        - uat-db
+        - file
+        - uat-redis
+        - log
+  application:
+    name: tyler-web
+#
+#---
+#spring:
+#  config:
+#    activate:
+#      on-profile: dev-db
+#  datasource:
+#    url: dev数据库url
+#
+#---
+#spring:
+#  config:
+#    activate:
+#      on-profile: uat-db
+#  datasource:
+#    url: uat数据库url
+
